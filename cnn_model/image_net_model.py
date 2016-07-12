@@ -20,6 +20,7 @@ from sklearn.metrics import f1_score,precision_score,recall_score,accuracy_score
 
 class AlexNet(object):
     def __init__(self,
+                 verbose=0,
                  num_labels = None,
                  nb_epoch = 50,
                  ):
@@ -27,6 +28,7 @@ class AlexNet(object):
 
         super(AlexNet, self).__init__()
 
+        self.verbose = verbose
         self.num_labels = num_labels
         self.nb_epoch = nb_epoch
         self.build_model()
@@ -170,16 +172,20 @@ class AlexNet(object):
 
         f1 = f1_score(test_y, y_pred.tolist(), average=None)
         logging.debug('F1为：%s' % (str(f1)))
-        print('F1为：%s' % (str(f1)))
-
+        print('F1为：%s' % ('|'.join(['%f'%item for item in f1])))
+        print('---|'*self.num_labels)
         p = precision_score(test_y,y_pred,average=None)
         print('precision:%s'%(str(p)))
+        logging.debug('precision:%s'%(str(p)))
+        print('precision为：%s' % ('|'.join(['%f'%item for item in p])))
 
         r = recall_score(test_y,y_pred,average=None)
-        print('recall_score:%s'%(str(r)))
+        print('recall:%s'%(str(r)))
+        print('recall为：%s' % ('|'.join(['%f'%item for item in r])))
 
         # a = accuracy_score(test_y,y_pred)
         # print('recall_score:%s'%(str(r)))
+        return accu,f1,p,r,is_correct,y_pred
 
     def save_model(self,path='./model.pkl'):
 
@@ -187,17 +193,27 @@ class AlexNet(object):
         # 保存模型
         json_string = self.model.to_json()
         # print json_string
-        cnn_model_architecture = '/home/jdwang/PycharmProjects/digitRecognition/cnn/model/' \
+        cnn_model_architecture = '/home/jdwang/PycharmProjects/digitRecognition/cnn_model/model/' \
                                  'cnn_model_architecture_%dtrain_%dwin_%depoch.json' \
                                  % (num_train,win_shape, nb_epoch)
         open(cnn_model_architecture, 'w').write(json_string)
         logging.info('模型架构保存到：%s'%cnn_model_architecture)
-        cnn_model_weights = '/home/jdwang/PycharmProjects/digitRecognition/cnn/model/' \
+        cnn_model_weights = '/home/jdwang/PycharmProjects/digitRecognition/cnn_model/model/' \
                             'cnn_model_weights_%dtrain_%dwin_%depoch.h5' \
                             % (num_train,win_shape, nb_epoch)
         model.save_weights(cnn_model_weights,overwrite=True)
         logging.info('模型权重保存到：%s'%cnn_model_weights)
 
 
+    def print_model_descibe(self):
+        import pprint
+        detail = {
+                  'verbose': self.verbose,
+                  'num_labels': self.num_labels,
+                  'nb_epoch': self.nb_epoch,
+                  }
+        pprint.pprint(detail)
+        logging.debug(detail)
+        return detail
 if __name__ == '__main__':
     pass
