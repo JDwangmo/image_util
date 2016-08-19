@@ -152,6 +152,7 @@ class ImageNet(CnnBaseClass):
 
         from keras.models import Model
         from keras.layers import ZeroPadding2D,Flatten,Activation,Input,BatchNormalization
+        from keras import backend as K
 
         l1_input = Input(shape=self.input_shape)
         # l1_input = BatchNormalization()(l1_input)
@@ -190,6 +191,8 @@ class ImageNet(CnnBaseClass):
         # 8. softmax 分类层
         l8_softmax_output = Activation("softmax")(l6_output)
         model = Model(input=[l1_input], output=[l8_softmax_output])
+
+        self.conv1_feature_output = K.function([l1_input, K.learning_phase()], [l1_input_padding])
 
 
         if self.verbose > 0:

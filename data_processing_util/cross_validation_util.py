@@ -203,6 +203,13 @@ def get_val_score(
 
         # 拟合数据
         dev_loss, dev_accuracy, val_loss, val_accuracy = estimator.fit((dev_X, dev_y), (val_X, val_y))
+        conv1_output = estimator.get_layer_output(dev_X, layer='conv1', transform_input=False)
+        # print(conv1_output[0].reshape(15,15))
+        import pickle
+        with open('/home/jdwang/PycharmProjects/digitRecognition/cnn/result/conv1.pickle','wb') as fout:
+            pickle.dump(dev_X,fout)
+            pickle.dump(conv1_output,fout)
+        quit()
 
         print('dev:%f,%f' % (dev_loss, dev_accuracy))
         print('val:%f,%f' % (val_loss, val_accuracy))

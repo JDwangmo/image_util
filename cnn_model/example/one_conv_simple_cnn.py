@@ -37,9 +37,9 @@ class ImageCNNWithOneConv(object):
             l1_conv_filter_type=[
                 # [num_filter, 1, 1, 'valid', (2, 2), 0., 'relu', 'none','flatten'],
                 # [num_filter, 2, 2, 'valid', (2, 2), 0., 'relu', 'none','flatten'],
-                [num_filter, filter1, 3, 'valid', (2, 2), 0., 'relu', 'none','flatten'],
+                # [num_filter, filter1, 3, 'valid', (2, 2), 0., 'relu', 'none','flatten'],
                 [num_filter, filter2, 5, 'valid', (2, 2), 0., 'none', 'none'],
-                [num_filter, filter3, 7, 'valid', (2, 2), 0., 'none', 'none'],
+                # [num_filter, filter3, 7, 'valid', (2, 2), 0., 'none', 'none'],
                 # [num_filter, 12, 3, 'valid', (2, 2), 0., 'none', 'none'],
             ],
             l2_conv_filter_type=[
