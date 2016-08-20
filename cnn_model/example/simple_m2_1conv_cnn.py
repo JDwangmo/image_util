@@ -3,7 +3,7 @@
     Author:  'jdwang'
     Date:    'create date: 2016-08-15'
     Email:   '383287471@qq.com'
-    Describe:  单层卷积层的 CNN 模型
+    Describe:  M2_1conv,单层卷积层的 CNN 模型, 两层权重层，一种卷积核
 """
 
 
@@ -11,7 +11,7 @@
 from cnn_model.image_net_model import ImageNet
 import numpy as np
 import pickle
-class ImageCNNWithOneConv(object):
+class ImageCNN(object):
 
     @staticmethod
     def get_model(
@@ -37,8 +37,8 @@ class ImageCNNWithOneConv(object):
             l1_conv_filter_type=[
                 # [num_filter, 1, 1, 'valid', (2, 2), 0., 'relu', 'none','flatten'],
                 # [num_filter, 2, 2, 'valid', (2, 2), 0., 'relu', 'none','flatten'],
-                # [num_filter, filter1, 3, 'valid', (2, 2), 0., 'relu', 'none','flatten'],
-                [num_filter, filter2, 5, 'valid', (2, 2), 0., 'none', 'none'],
+                [num_filter, filter1, 3, 'valid', (2, 2), 0., 'relu', 'none','none',(2,2)],
+                # [num_filter, filter2, 5, 'valid', (2, 2), 0., 'none', 'none'],
                 # [num_filter, filter3, 7, 'valid', (2, 2), 0., 'none', 'none'],
                 # [num_filter, 12, 3, 'valid', (2, 2), 0., 'none', 'none'],
             ],
@@ -58,24 +58,7 @@ class ImageCNNWithOneConv(object):
             show_validate_accuracy=False if kwargs.get('verbose',0)==0 else True,
         )
 
-        # image_net = ImageNet(
-        #     rand_seed=1377,
-        #     verbose=kwargs.get('verbose', 0),
-        #     feature_encoder=feature_encoder,
-        #     # optimizers='adadelta',
-        #     optimizers='sgd',
-        #     input_shape=(1, 15, 15),
-        #     # model_network_type='simple_3_conv',
-        #     model_network_type='simple_from_qiangjia',
-        #     layer1=num_filter,
-        #     hidden1=hidden1,
-        #     nkerns =[3,5,7],
-        #     num_labels=num_labels,
-        #     nb_epoch=30,
-        #     nb_batch=32,
-        #     earlyStoping_patience=30,
-        #     lr=1e-2,
-        # )
+
         if kwargs.get('verbose',0)>0:
             image_net.print_model_descibe()
         # quit()
@@ -95,6 +78,7 @@ class ImageCNNWithOneConv(object):
             num_labels = 34,
             verbose = 0,
             output_badcase = False,
+            output_result = False,
             **kwargs
            ):
         print('='*80)
@@ -128,10 +112,12 @@ class ImageCNNWithOneConv(object):
                                                                                            filter3,
                                                                                            ))
                             _,_,test_predict_result = get_val_score(
-                                ImageCNNWithOneConv,
+                                ImageCNN,
                                 cv_data=cv_data,
                                 verbose=verbose,
-                                get_predict_result=False,
+                                get_predict_result=True if output_badcase or output_result else False,
+                                get_conv1_result=True if output_result else False,
+                                need_validation=False if output_result else True,
                                 num_filter=num_filter,
                                 hidden1 = hidden1,
                                 filter1=filter1,
@@ -143,7 +129,8 @@ class ImageCNNWithOneConv(object):
                             if output_badcase:
                                 # 输出badcase
                                 test_X,test_y = test_data
-                                is_badcase = test_y!=test_predict_result[0]
+                                test_predict = test_predict_result[0]
+                                is_badcase = test_y!= test_predict[0]
                                 print(is_badcase)
                                 print('badcase个数：%d'%(np.sum(is_badcase)))
                                 print('占总数的：%f'%np.mean(is_badcase))
@@ -152,7 +139,19 @@ class ImageCNNWithOneConv(object):
                                 with open(kwargs.get('badcase_file_path','./badcase.tmp'),'wb') as fout:
                                     pickle.dump(test_X[is_badcase],fout)
                                     pickle.dump(test_y[is_badcase],fout)
-                                    pickle.dump(test_predict_result[0][is_badcase],fout)
+                                    pickle.dump(test_predict[0][is_badcase],fout)
                                     print('badcase 保存到：%s'%fout.name)
+
+                            if output_result:
+                                # 输出result
+                                test_X,test_y = test_data
+                                test_predict = test_predict_result[0]
+                                # print(test_X[is_badcase])
+                                # print(test_predict_result[0])
+                                with open(kwargs.get('result_file_path','./result.tmp'),'wb') as fout:
+                                    pickle.dump(test_X,fout)
+                                    pickle.dump(test_y,fout)
+                                    pickle.dump(test_predict,fout)
+                                    print('result 保存到：%s'%fout.name)
 
 

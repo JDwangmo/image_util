@@ -166,8 +166,12 @@ class CnnBaseClass(CommonModel):
         dropout_rate = convolution_filter_type[0][5]
         activation = convolution_filter_type[0][6]
         normalization = convolution_filter_type[0][7]
-        if len(convolution_filter_type[0]) > 8:
+
+        if len(convolution_filter_type[0]) == 9:
             kwargs['flatten'] = convolution_filter_type[0][8]
+
+        if len(convolution_filter_type[0]) == 10:
+            kwargs['zero_padding'] = convolution_filter_type[0][9]
 
         self.check_param(activation=activation,normalization=normalization,flatten=kwargs.get('flatten','none'))
 
@@ -241,9 +245,11 @@ class CnnBaseClass(CommonModel):
 
         self.check_param(activation=activation, normalization=normalization,flatten=kwargs.get('flatten','none'))
 
-        from keras.layers import Dropout,Activation,BatchNormalization,Reshape,Flatten
+        from keras.layers import Dropout,Activation,BatchNormalization,ZeroPadding2D,Flatten
         from custom_layers import Convolution2DWrapper,MaxPooling2DWrapper
 
+        if kwargs.get('zero_padding','none')!='none':
+            input_layer = ZeroPadding2D(kwargs.get('zero_padding',(1,1)))(input_layer)
         # 普通2D卷积
         conv_output = Convolution2DWrapper(
             nb_filter,
@@ -305,9 +311,10 @@ class CnnBaseClass(CommonModel):
                 7) activation: 激活函数 ，['linear','relu'],当使用多size的时候，activation 以第一个为准，其他无视。
                 8) normalization: 规范化，['none','batch_normalization']，设置none的时候不使用,,当使用多size的时候，normalization 以第一个为准，其他无视。
                 9) flatten: 每种卷积之后是否 flatten，可选设置,['flatten','none']
+                10) zero_padding: 是否对输入进行 zero_padding,可选设置,none或者 2元 array-like，比如 (2,2)
 
             1. 多size：每个列表代表一种类型(size)的卷积核,分别为
-                l1_conv_filter_type = [[100,2,word_embedding_dim,'valid',(1,1), 0.5, 'relu', 'batch_normalization','flatten'],
+                l1_conv_filter_type = [[100,2,word_embedding_dim,'valid',(1,1), 0.5, 'relu', 'batch_normalization','flatten',(2,2)],
                                     [100,4,word_embedding_dim,'valid',(1,1), 0., 'relu', 'batch_normalization'],
                                     [100,6,word_embedding_dim,'valid',(1,1), 0., 'relu', 'batch_normalization'],
                                    ]
@@ -328,8 +335,11 @@ class CnnBaseClass(CommonModel):
             if len(convolution_filter_type) == 1:
                 # 单size 卷积层
                 nb_filter, nb_row, nb_col, border_mode, k,dropout_rate,activation,normalization = convolution_filter_type[0][:8]
-                if len(convolution_filter_type[0])>8:
+                if len(convolution_filter_type[0])==9:
                     kwargs['flatten'] = convolution_filter_type[0][8]
+
+                if len(convolution_filter_type[0])==10:
+                    kwargs['zero_padding'] = convolution_filter_type[0][9]
 
                 output = self.create_one_size_convolution_layer(
                     input_layer,
@@ -637,7 +647,7 @@ class CnnBaseClass(CommonModel):
                                                                             True) else None,
             shuffle=True,
             batch_size=self.batch_size,
-            callbacks=[self.early_stop]
+            # callbacks=[self.early_stop]
         )
 
         train_loss,train_accuracy = self.model.evaluate(train_X, train_y,verbose=0)
@@ -755,7 +765,7 @@ class CnnBaseClass(CommonModel):
             output = self.conv2_feature_output([sentence, 0])[0]
         else:
             raise NotImplementedError
-        output = output.reshape(len(sentence),-1)
+        # output = output.reshape(len(sentence),-1)
 
         # -------------- print start : just print info -------------
         if self.verbose > 2:

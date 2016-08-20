@@ -156,11 +156,11 @@ class ImageNet(CnnBaseClass):
 
         l1_input = Input(shape=self.input_shape)
         # l1_input = BatchNormalization()(l1_input)
-        l1_input_padding = ZeroPadding2D((2, 2))(l1_input)
+        # l1_input_padding = ZeroPadding2D((2, 2))(l1_input)
 
         # 5. 第一层卷积层：多size卷积层（含1-max pooling），使用三种size.
         l2_conv = self.create_convolution_layer(
-            input_layer=l1_input_padding,
+            input_layer=l1_input,
             convolution_filter_type=l1_conv_filter_type,
         )
         # print (self.embedding_layer_output.get_weights())
@@ -169,10 +169,19 @@ class ImageNet(CnnBaseClass):
         # quit()
 
         # 6. 第二层卷积层：单size卷积层 和 max pooling 层
+        # l3_conv = ZeroPadding2D((2, 2))(l2_conv)
         l3_conv = self.create_convolution_layer(
             input_layer=l2_conv,
             convolution_filter_type=l2_conv_filter_type,
         )
+
+        if self.kwargs.has_key('l3_conv_filter_type'):
+            # l3_conv = ZeroPadding2D((2, 2))(l3_conv)
+
+            l3_conv = self.create_convolution_layer(
+                input_layer=l3_conv,
+                convolution_filter_type=self.kwargs.get('l3_conv_filter_type',[]),
+            )
 
         # 6. Flatten层： 卷积的结果进行拼接,变成一列隐含层
         # l4_flatten = Flatten()(l3_conv)
@@ -192,8 +201,7 @@ class ImageNet(CnnBaseClass):
         l8_softmax_output = Activation("softmax")(l6_output)
         model = Model(input=[l1_input], output=[l8_softmax_output])
 
-        self.conv1_feature_output = K.function([l1_input, K.learning_phase()], [l1_input_padding])
-
+        self.conv1_feature_output = K.function([l1_input, K.learning_phase()], [l2_conv])
 
         if self.verbose > 0:
             model.summary()
@@ -348,12 +356,12 @@ if __name__ == '__main__':
         earlyStoping_patience=50,
         model_network_type='simple',
         l1_conv_filter_type=[
-            [32, 2, 2, 'valid', (2, 2), 0.5, 'none', 'none','flatten'],
+            # [32, 2, 2, 'valid', (2, 2), 0.5, 'none', 'none','flatten'],
             [32, 4, 4, 'valid', (2, 2), 0., 'none', 'none'],
             # [4, 5, -1, 'valid', (2, 1), 0., 'none', 'none'],
         ],
         l2_conv_filter_type=[
-            # [32, 2, 2, 'valid', (2, 2), 0.5, 'none', 'none'],
+            [32, 2, 2, 'valid', (2, 2), 0.5, 'none', 'none'],
         ],
         full_connected_layer_units = [
             (50,0.5,'relu','none'),

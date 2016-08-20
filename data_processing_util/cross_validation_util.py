@@ -14,6 +14,7 @@ from __future__ import print_function
 import numpy as np
 import pandas as pd
 import logging
+import sys
 import copy
 
 __all__ = ['data_split_k_fold',
@@ -172,25 +173,27 @@ def get_val_score(
     :param estimator_class: 分类器的类，必须实现了 get_model() 函数
     :param cv_data: 验证数据，第一份为 训练和测试数据，之后为验证数据
     :param shuffle_data: 是否打乱数据
-    :param parameters: 参数, [get_predict_result]
+    :param parameters: 参数, [get_predict_result,get_conv1_result,log_output_file]
     :return: [test_accu] + [验证预测平均], train_acc,predict_result
     """
 
+    log_output_file = parameters.get('log_output_file', sys.stdout)
+
     # K折
-    print('K折交叉验证开始...')
+    print('K折交叉验证开始...',file = log_output_file)
     counter = 0
     test_acc = []
     train_acc = []
     predict_result = []
     for dev_X, dev_y, val_X, val_y, feature_encoder in cv_data:
         # print(len(dev_X))
-        print('-' * 80)
+        print('-' * 80,file = log_output_file)
         if counter == 0:
             # 第一个数据是训练，之后是交叉验证
-            print('训练:')
+            print('训练:',file = log_output_file)
 
         else:
-            print('第%d个验证' % counter)
+            print('第%d个验证' % counter,file = log_output_file)
         parameters['feature_encoder'] = feature_encoder
         # 构建分类器对象
         # print(parameters)
@@ -203,38 +206,38 @@ def get_val_score(
 
         # 拟合数据
         dev_loss, dev_accuracy, val_loss, val_accuracy = estimator.fit((dev_X, dev_y), (val_X, val_y))
-        conv1_output = estimator.get_layer_output(dev_X, layer='conv1', transform_input=False)
-        # print(conv1_output[0].reshape(15,15))
-        import pickle
-        with open('/home/jdwang/PycharmProjects/digitRecognition/cnn/result/conv1.pickle','wb') as fout:
-            pickle.dump(dev_X,fout)
-            pickle.dump(conv1_output,fout)
-        quit()
 
-        print('dev:%f,%f' % (dev_loss, dev_accuracy))
-        print('val:%f,%f' % (val_loss, val_accuracy))
+        print('dev:%f,%f' % (dev_loss, dev_accuracy),file = log_output_file)
+        print('val:%f,%f' % (val_loss, val_accuracy),file = log_output_file)
+        # quit()
         # 取得预测结果
         if parameters.get('get_predict_result',False):
             predict_y = estimator.batch_predict(val_X, transform_input=False)
-            predict_result.append(predict_y)
-
+            if parameters.get('get_conv1_result',False):
+                conv1_output = estimator.get_layer_output(val_X, layer='conv1', transform_input=False)
+                # print(conv1_output.shape)
+                predict_result.append([predict_y,conv1_output])
+            else:
+                predict_result.append([predict_y])
             if parameters.get('verbose',0)>0:
-                print('预测结果：')
-                print(val_y)
-                print(predict_y)
+                print('预测结果：',file = log_output_file)
+                print(val_y,file = log_output_file)
+                print(predict_y,file = log_output_file)
 
 
         # quit()
         test_acc.append(val_accuracy)
         train_acc.append(dev_accuracy)
+        if not parameters.get('need_validation','True'):
+            break
         counter += 1
 
-    print('k折验证结果：%s' % test_acc)
-    print('验证中训练数据结果：%s' % train_acc)
-    print('验证中测试数据平均准确率：%f' % np.average(test_acc[1:]))
-    print('测试结果汇总：%s'%(test_acc+[np.average(test_acc[1:])]))
-    print('%s,%s'%(train_acc,test_acc))
-    print('-' * 80)
+    print('k折验证结果：%s' % test_acc,file = log_output_file)
+    print('验证中训练数据结果：%s' % train_acc,file = log_output_file)
+    print('验证中测试数据平均准确率：%f' % np.average(test_acc[1:]),file = log_output_file)
+    print('测试结果汇总：%s'%(test_acc+[np.average(test_acc[1:])]),file = log_output_file)
+    print('%s,%s'%(train_acc,test_acc),file = log_output_file)
+    print('-' * 80,file = log_output_file)
 
     return test_acc + [np.average(test_acc[1:])],train_acc,predict_result
 
