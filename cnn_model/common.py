@@ -77,7 +77,7 @@ class CnnBaseClass(CommonModel):
         :type nb_epoch: int
         :param earlyStoping_patience: cnn设置选项,earlyStoping的设置,如果迭代次数超过这个耐心值,依旧不下降,则stop.
         :type earlyStoping_patience: int
-        :param kwargs: 目前有 lr , batch_size
+        :param kwargs: 目前有 lr(float) , batch_size(int), data_augmentation(bool)
         :type kwargs: dict
         """
 
@@ -637,18 +637,47 @@ class CnnBaseClass(CommonModel):
             print('3. 模型训练')
         # -------------- code start : 开始 -------------
 
-        self.model.fit(
-            train_X,
-            train_y,
-            nb_epoch=self.nb_epoch,
-            verbose=self.verbose,
-            # validation_split=0.1,
-            validation_data=(validation_X, validation_y) if self.kwargs.get('show_validate_accuracy',
-                                                                            True) else None,
-            shuffle=True,
-            batch_size=self.batch_size,
-            # callbacks=[self.early_stop]
-        )
+        if self.kwargs.get('data_augmentation',False):
+            # 数据增强，每次迭代前，对数据随机进行变换
+            from keras.preprocessing.image import ImageDataGenerator
+            datagen = ImageDataGenerator(
+                featurewise_center=False,  # set input mean to 0 over the dataset
+                samplewise_center=False,  # set each sample mean to 0
+                featurewise_std_normalization=False,  # divide inputs by std of the dataset
+                samplewise_std_normalization=False,  # divide each input by its std
+                zca_whitening=False,  # apply ZCA whitening
+                rotation_range=15,  # randomly rotate images in the range (degrees, 0 to 180)
+                width_shift_range=0.15,  # randomly shift images horizontally (fraction of total width)
+                height_shift_range=0.15,  # randomly shift images vertically (fraction of total height)
+                horizontal_flip=False,  # randomly flip images
+                vertical_flip=False,  # randomly flip images
+                zoom_range=[0.8, 1.2],  #  randomly zoom(缩放，变焦) images
+
+            )
+            datagen.fit(train_X)
+            self.model.fit_generator(
+                datagen.flow(train_X, train_y,batch_size=self.batch_size),
+                verbose=self.verbose,
+                samples_per_epoch=len(train_X),
+                validation_data=(validation_X, validation_y) if self.kwargs.get('show_validate_accuracy',
+                                                                                True) else None,
+                nb_epoch = self.nb_epoch,
+
+            )
+
+        else:
+            self.model.fit(
+                train_X,
+                train_y,
+                nb_epoch=self.nb_epoch,
+                verbose=self.verbose,
+                # validation_split=0.1,
+                validation_data=(validation_X, validation_y) if self.kwargs.get('show_validate_accuracy',
+                                                                                True) else None,
+                shuffle=True,
+                batch_size=self.batch_size,
+                # callbacks=[self.early_stop]
+            )
 
         train_loss,train_accuracy = self.model.evaluate(train_X, train_y,verbose=0)
         val_loss,val_accuracy = self.model.evaluate(validation_X, validation_y,verbose=0)

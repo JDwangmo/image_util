@@ -290,8 +290,8 @@ class ImageNet(CnnBaseClass):
                 self.output_shape = kwargs.get('output_shape',(15,15))
 
             def fit(self,X=None):
-
-                self.normalizer = Normalizer(norm='l2')
+                X = X.astype(dtype='float64')
+                # self.normalizer = Normalizer(norm='l2')
                 self.scaler = StandardScaler(with_mean=True, with_std=True)
 
                 input_shape = X.shape
@@ -303,21 +303,19 @@ class ImageNet(CnnBaseClass):
                 return self
 
             def fit_transform(self, X=None):
-
                 return self.fit(X).transform(X)
 
             def transform(self,
                           X,
                           ):
+                X = X.astype(dtype='float64')
                 input_shape = X.shape
                 X = X.reshape(input_shape[0], -1)
-                #
                 # X = self.normalizer.transform(X).reshape(input_shape)
                 # 取左下角
                 X = self.scaler.transform(X).reshape(input_shape)
                 X = X[:,:,15-self.output_shape[0]:,:self.output_shape[1]]
                 return X
-                # return [X,X,X]
 
         feature_encoder = FeatureEncoder()
 

@@ -20,5 +20,11 @@
 
 ## 工具列表
 
-### commom: 通用类
-1. `cnn/image_net_model.py`:
+### base: 通用类
+1. `common_model_class.py`：cnn模型的父类，提供一些通用模型的方法。
+    - 20160828新增了数据增强（data augmentation）功能，参考自[官方文档](https://keras.io/preprocessing/image/)和[github](https://github.com/fchollet/keras/blob/master/examples/cifar10_cnn.py#L6)
+
+### cnn_model
+1. `cnn/image_net_model.py`: 卷积神经网络模型
+    - `example`：该文件夹下提供了一些例子
+    
