@@ -646,12 +646,12 @@ class CnnBaseClass(CommonModel):
                 featurewise_std_normalization=False,  # divide inputs by std of the dataset
                 samplewise_std_normalization=False,  # divide each input by its std
                 zca_whitening=False,  # apply ZCA whitening
-                rotation_range=15,  # randomly rotate images in the range (degrees, 0 to 180)
-                width_shift_range=0.15,  # randomly shift images horizontally (fraction of total width)
-                height_shift_range=0.15,  # randomly shift images vertically (fraction of total height)
+                rotation_range=10,  # randomly rotate images in the range (degrees, 0 to 180)
+                width_shift_range=0.1,  # randomly shift images horizontally (fraction of total width)
+                height_shift_range=0.1,  # randomly shift images vertically (fraction of total height)
                 horizontal_flip=False,  # randomly flip images
                 vertical_flip=False,  # randomly flip images
-                zoom_range=[0.8, 1.2],  #  randomly zoom(缩放，变焦) images
+                zoom_range=[0.9, 1.01],  #  randomly zoom(缩放，变焦) images
 
             )
             datagen.fit(train_X)

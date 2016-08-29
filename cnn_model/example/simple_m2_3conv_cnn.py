@@ -48,7 +48,7 @@ class ImageCNN(object):
 
             ],
             full_connected_layer_units=[
-                (hidden1, 0., 'relu', 'none'),
+                (hidden1, 0.2, 'relu', 'none'),
                 # (50, 0.5, 'relu', 'none'),
             ],
             num_labels=num_labels,
