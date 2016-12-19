@@ -42,6 +42,10 @@ class DataUtil(object):
         # print(array.shape)
         return array
 
+    def show_image_from_array(self,arr):
+        image = Image.fromarray(arr)
+        image.show()
+
 
 if __name__ == '__main__':
     dutil = DataUtil()
